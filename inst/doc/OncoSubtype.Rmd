@@ -1,0 +1,70 @@
+---
+title: "Predict cancer subtypes using NCC or machine learning methods based on TCGA data"
+author: "Dadong Zhang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{OncoSubtype}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# OncoSubtype
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+Provide functionality for cancer subtyping using existing published methods or machine learning based on TCGA data.
+
+Currently support mRNA subtyping for LUSC, LUAD, HNSC, STAD, and BLCA using [nearest centroids method](https://aacrjournals.org/clincancerres/article/16/19/4864/75620/Lung-Squamous-Cell-Carcinoma-mRNA-Expression) or machine-learning-based method by training TCGA data.
+
+## Installation
+
+You can install the latest released version by
+
+``` r
+install.packages("OncoSubtype")
+```
+
+## Example
+
+This is a basic example for predicting the subtypes for LUSC.
+
+### Predict (Lung Squamous Cell Carcinoma) LUSC  mRNA Expression Subtypes using [wilkerson method](https://aacrjournals.org/clincancerres/article/16/19/4864/75620/Lung-Squamous-Cell-Carcinoma-mRNA-Expression)
+
+```{r wilkerson, eval=FALSE}
+library(OncoSubtype)
+library(tidyverse)
+set.seed(2121)
+data <- get_median_centered(example_fpkm)
+data <- assays(data)$centered
+rownames(data) <- rowData(example_fpkm)$external_gene_name
+# use default wilkerson's nearest centroids method
+output1 <- centroids_subtype(data, disease = 'LUSC')
+table(output1$subtypes)
+```
+
+### Using random forest model by training TCGA LUSC data
+```{r rf, eval=FALSE}
+output2 <- ml_subtype(data, disease = 'LUSC', method = 'rf')
+table(output1$subtypes)
+confusionMatrix(output1, output2)
+```
+
+### Check the consistance between two methods
+```{r confusion, eval=FALSE}
+confusionMatrix(output1, output2)
+```
+
+### Plotheat map
+```{r heatmap, eval=FALSE}
+PlotHeat(object = output2, set = 'both', fontsize = 10,
+          show_rownames = FALSE, show_colnames = FALSE)
+```
